@@ -13,19 +13,6 @@ struct AddItem
 	char have[50];
 };
 
-int getCount(int sd){
-    int nowCount;
-    if(recv(sd, (int* )&nowCount, sizeof(nowCount), 0) == -1){
-        perror("Count Recv");
-        exit(1);
-    }
-    else{
-        printf("받은 리스트 개수: %d\n", nowCount);
-        return nowCount;
-    }
-    return -1;
-}
-
 int sendAddItemStruct(int clientSD, struct AddItem* newItem, int bufSize){
 	if (send(clientSD, (struct AddItem*) newItem, bufSize, 0) == -1) {
         printf("send fail!\n");
@@ -36,19 +23,20 @@ int sendAddItemStruct(int clientSD, struct AddItem* newItem, int bufSize){
 	return 1;
 }
 
-int get1Item(int sd, int count){
-    
-    for (int i = 0;i< count; i++){
-        struct AddItem newItem;
-        if(recv(sd, (struct AddItem * )&newItem, sizeof(newItem), 0) == -1){
+int getItemList(int sd){
+
+    struct AddItem newItem[50];
+    if(recv(sd, (struct AddItem * )&newItem, sizeof(newItem), 0) == -1){
         perror("recv");
         exit(1);
+    }
+    else{
+        for(int i = 0;i < 50;i++){
+            printf("번호: %d: ", i);
+            printf("가지고 있는 것: %s, ", newItem[i].have);
+            printf("원하는 것: %s\n", newItem[i].want);
         }
-        else{
-            printf("번호: %d: ", i+1);
-            printf("가지고 있는 것: %s, ", newItem.have);
-            printf("원하는 것: %s\n", newItem.want);
-        }
+        
     }
 }
 
@@ -73,12 +61,8 @@ int main() {
         exit(1);
     }
 
-    int itemInt = getCount(sd);
-    if (itemInt >= 0){
-        get1Item(sd, itemInt);
-    }else{
-        printf("받은 리스트 개수가 0보다 작다.\n");
-    }
+    getItemList(sd);
+    
 	int testInt = 1;
 
 	while(testInt == 1){
@@ -97,3 +81,31 @@ int main() {
 
     close(sd);
 }
+
+// int getCount(int sd){
+//     int nowCount;
+//     if(recv(sd, (int* )&nowCount, sizeof(nowCount), 0) == -1){
+//         perror("Count Recv");
+//         exit(1);
+//     }
+//     else{
+//         printf("받은 리스트 개수: %d\n", nowCount);
+//         return nowCount;
+//     }
+//     return -1;
+// }
+
+// int get1Item(int sd, int count){  
+//     for (int i = 0;i< count; i++){
+//         struct AddItem newItem;
+//         if(recv(sd, (struct AddItem * )&newItem, sizeof(newItem), 0) == -1){
+//         perror("recv");
+//         exit(1);
+//         }
+//         else{
+//             printf("번호: %d: ", i+1);
+//             printf("가지고 있는 것: %s, ", newItem.have);
+//             printf("원하는 것: %s\n", newItem.want);
+//         }
+//     }
+// }
