@@ -7,6 +7,22 @@
 
 #define SOCKET_NAME "market"
 
+struct AddItem
+{
+	char want[50];
+	char have[50];
+};
+
+
+int sendAddItemStruct(int clientSD, struct AddItem* newItem, int bufSize){
+	if (send(clientSD, (struct AddItem*) newItem, bufSize, 0) == -1) {
+        perror("send");
+        return 0;
+    }
+	return 1;
+
+}
+
 
 int main() {
     int sd, len;
@@ -28,10 +44,26 @@ int main() {
         exit(1);
     }
 
+	int testInt = 1;
+
+	while(testInt == 1){
+		struct AddItem newItem;
+		
+		printf("내가 가지고 있는거: ");
+		scanf("%s", &newItem.have);
+		
+		printf("내가 원하는 거: ");
+		scanf("%s", &newItem.want);
+
+		sendAddItemStruct(sd, &newItem, sizeof(struct AddItem));
+		
+		printf("계속 보내고 싶어?(1/0): ");
+		scanf("%d", &testInt);
+	}
+
+
+
     strcpy(buf, "Hello, Market");
-    if (send(sd, buf, sizeof(buf), 0) == -1) {
-        perror("send");
-        exit(1);
-    }
+    sendText(sd, buf, sizeof(buf));
     close(sd);
 }
