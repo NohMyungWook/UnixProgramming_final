@@ -26,29 +26,16 @@ int getCount(int sd){
         exit(1);
     }
     else{
-        printf("받은 리스트 개수: %d\n", nowCount);
         return nowCount;
     }
     return -1;
 }
 
-int sendAddItemStruct(int clientSD, struct AddItem* newItem, int bufSize){
-	if (send(clientSD, (struct AddItem*) newItem, bufSize, 0) == -1) {
-        printf("send fail!\n");
-        perror("send");
-        return 0;
-    }
-    printf("send succsed!\n");
-	return 1;
-}
-
-int sendchooseItemStruct(int clientSD, struct SendPacket* newPacket, int bufSize){
+int sendStruct(int clientSD, struct SendPacket* newPacket, int bufSize){
 	if (send(clientSD, (struct SendPacket*) newPacket, bufSize, 0) == -1) {
-        printf("send fail!\n");
         perror("send");
         return 0;
     }
-    printf("send succsed!\n");
 	return 1;
 }
 
@@ -65,7 +52,7 @@ int get1Item(int sd, int count, struct AddItem* allItemList){
         else{
             *(allItemList + i) = newItem;
             printf("[%d]\n", i+1);
-            printf("원하는 물건: %s\n, ", newItem.have);
+            printf("원하는 물건: %s\n", newItem.have);
             printf("갖고 싶은 물건: %s\n", newItem.want);
         }
     }
@@ -81,6 +68,25 @@ int printNowList(int sd, struct AddItem* allItemList){
     }
     printf("---------------------------------------\n");
     return itemInt;
+}
+
+int createNew(int sd){
+    struct AddItem newItem;
+    
+    printf("원하는 물건을 입력하세요 : ");
+    scanf("%s", newItem.want);
+
+    printf("가지고 있는 물건을 입력하세요 : ");
+    scanf("%s", newItem.have);
+
+    //보낼 패킷을 만들기
+    struct SendPacket newPacket;
+    newPacket.no = 2;
+    newPacket.nowItem = newItem;
+
+    sendStruct(sd, &newPacket, sizeof(struct SendPacket));
+    printf("\n등록되었습니다. \n");
+    return 1;
 }
 
 int main() {
@@ -133,37 +139,30 @@ int main() {
                 newPacket.no = 1;
                 newPacket.nowItem = sendItem;
 
-                sendchooseItemStruct(sd, &newPacket, sizeof(struct SendPacket));
-                printf("교환이 완료되었습니다.\n");
+                sendStruct(sd, &newPacket, sizeof(struct SendPacket));
+                printf("\n교환이 완료되었습니다.\n");
 
             }else{
                 printf("번호가 범위 안에 없습니다.\n");
             }
         }else if (taskNum == 2){
-
+            createNew(sd);
         }else if(taskNum == 3){
-            printf("감사합니다\n");
+            printf("이용해주셔서 감사합니다. \n");
             isRun = 0;
         }else{
-            printf("잘 못 입력했습니다. 정수 1, 2, 3중 하나를 입력하세요. ");
+            printf("잘못 입력했습니다. 정수 1, 2, 3중 하나를 입력하세요. ");
         }
+        printf("\n");
     }
-
-	// int testInt = 1;
-
-	// while(testInt == 1){
-	// 	struct AddItem newItem;
-		
-	// 	printf("내가 가지고 있는거: ");
-	// 	scanf("%s", &newItem.have);
-		
-	// 	printf("내가 원하는 거: ");
-	// 	scanf("%s", &newItem.want);
-
-	// 	sendAddItemStruct(sd, &newItem, sizeof(struct AddItem));
-	// 	printf("계속 보내고 싶어?(1/0): ");
-	// 	scanf("%d", &testInt);
-	// }
-
     close(sd);
 }
+
+
+// int sendAddItemStruct(int clientSD, struct AddItem* newItem, int bufSize){
+// 	if (send(clientSD, (struct AddItem*) newItem, bufSize, 0) == -1) {
+//         perror("send");
+//         return 0;
+//     }
+// 	return 1;
+// }
