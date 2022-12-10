@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <signal.h>
 
 #define SOCKET_NAME "market"
 
@@ -96,9 +97,18 @@ int createNew(int sd){
     return 1;
 }
 
-
+void sig_handler(int signo){
+    printf("recive %d Signal", signo);
+}
 
 int main() {
+    void (*hand) (int);
+    hand = signal(SIGCHLD, sig_handler);
+    if(hand == SIG_ERR){
+        perror("signal");
+        exit(1);
+    }
+
     int sd, len;
     char buf[256];
     struct sockaddr_un ser;    

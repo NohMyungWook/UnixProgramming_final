@@ -47,7 +47,23 @@ void delete_item(struct item *items, int n, int items_num){
     return;
 }
 
+//change: signal
+void sig_handler(int signo){
+    printf("recive %d Signal", signo);
+}
+
 int main(){
+
+    //change: signal
+    void (*hand)(int);
+    hand = signal(SIGCHLD, sig_handler);
+    if(hand == SIG_ERR){
+        perror("signal");
+        exit(1);
+    }
+
+
+
     struct sockaddr_un ser, cli;
     int sd, len, clen;
     int nsd;
@@ -92,9 +108,8 @@ int main(){
             perror("accept");
             exit(1);
         }
-
         switch (fork()){
-            case 0:
+            case 0: // 자식 프로세스일 경우:
                 printf("Client connect!\n");
                 while(1){
                     if(recv(nsd, (struct user_input*)&user_input, sizeof(user_input), 0) == -1){
@@ -109,11 +124,12 @@ int main(){
                             case 1:
                                 for(int i=0; i<items_num; i++){
                                     if((strcmp(items[i].want, user_input.item.want) + strcmp(items[i].have, user_input.item.have))==0){
-                                        printf("Delete List: index %d\n", i+1);
+                                        printf("Delete List: index %d\n",i+1);
                                         delete_item(items, i, items_num);
                                         items_num --;
                                     }
                                 }
+                                kill(getpgrp(), SIGCHLD);
                                 send_item_list(nsd, items_num, items);
                                 break;
                             case 2:
@@ -121,6 +137,7 @@ int main(){
                                     items_num++;
                                     printf("Add List: index %d\n", items_num);
                                 }
+                                kill(getpgrp(), SIGCHLD);
                                 send_item_list(nsd, items_num, items);
                                 break;
                             case 3:
