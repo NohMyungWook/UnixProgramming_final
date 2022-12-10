@@ -64,6 +64,9 @@ int get1Item(int sd, int count, struct AddItem* allItemList){
 }
 
 int printNowList(int sd, struct AddItem* allItemList){
+    struct AddItem empty;
+    sendStruct(sd, empty, 0);
+
     printf("-----현재 물물교환 가능 리스트-----\n");
 
     int itemInt = getCount(sd);
@@ -92,6 +95,8 @@ int createNew(int sd){
     printf("\n등록되었습니다. \n");
     return 1;
 }
+
+
 
 int main() {
     int sd, len;
@@ -129,7 +134,7 @@ int main() {
 
         if(taskNum == 1){
             if(nowListSize <=0){
-                printf("현재 물물교환이 가능한 물건이 없습니다");
+                printf("현재 물물교환이 가능한 물건이 없습니다\n");
                 continue;
             }
             printf("교환을 원하시는 번호를 입력해주세요 : ");
@@ -159,6 +164,9 @@ int main() {
         }
         printf("\n");
     }
+
+    struct AddItem empty;
+    sendStruct(sd, empty, 3);
     close(sd);
 }
 
