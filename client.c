@@ -73,6 +73,7 @@ int printNowList(int sd, struct AddItem* allItemList){
     int itemInt = getCount(sd);
 
     if (itemInt > 0){
+        printf("getCount: %d\n", itemInt);
         get1Item(sd, itemInt, allItemList);
     }else{
         printf("현재 물물교환이 가능한 물건이 없습니다..\n");
@@ -133,6 +134,8 @@ int main() {
     while(isRun){
 
         struct AddItem allItemList[50];
+        memset((struct AddItem *)allItemList, '\0', sizeof(allItemList));
+
 
         //리스트 출력 구간
         int nowListSize = printNowList(sd, allItemList);
@@ -170,7 +173,7 @@ int main() {
             printf("이용해주셔서 감사합니다. \n");
             isRun = 0;
         }else{
-            printf("잘못 입력했습니다. 정수 1, 2, 3중 하나를 입력하세요. ");
+            printf("잘못 입력했습니다. 정수 1, 2, 3중 하나를 입력하세요.\n ");
         }
         printf("\n");
     }
