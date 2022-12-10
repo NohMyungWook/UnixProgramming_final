@@ -52,8 +52,8 @@ int get1Item(int sd, int count, struct AddItem* allItemList){
         else{
             *(allItemList + i) = newItem;
             printf("[%d]\n", i+1);
-            printf("원하는 물건: %s\n", newItem.have);
-            printf("갖고 싶은 물건: %s\n", newItem.want);
+            printf("원하는 물건: %s\n", newItem.want);
+            printf("갖고 싶은 물건: %s\n", newItem.have);
         }
     }
 }
