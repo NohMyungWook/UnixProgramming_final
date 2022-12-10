@@ -16,9 +16,11 @@ struct AddItem
 
 int sendAddItemStruct(int clientSD, struct AddItem* newItem, int bufSize){
 	if (send(clientSD, (struct AddItem*) newItem, bufSize, 0) == -1) {
+        printf("send fail!");
         perror("send");
         return 0;
     }
+    printf("send succsed!");
 	return 1;
 
 }
@@ -56,14 +58,10 @@ int main() {
 		scanf("%s", &newItem.want);
 
 		sendAddItemStruct(sd, &newItem, sizeof(struct AddItem));
-		
 		printf("계속 보내고 싶어?(1/0): ");
 		scanf("%d", &testInt);
 	}
 
-
-
     strcpy(buf, "Hello, Market");
-    sendText(sd, buf, sizeof(buf));
     close(sd);
 }

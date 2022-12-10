@@ -10,7 +10,7 @@
 struct item{
     char want[50];
     char have[50];
-    struct sockaddr_un ip;
+    struct sockaddr_un addr;
 };
 
 struct cli_item{
@@ -19,13 +19,14 @@ struct cli_item{
 };
 
 int main(){
-    char buf[256];
+    char buf[256] = "test";
     struct sockaddr_un ser, cli;
     int sd, nsd, len, clen;
-    struct cli_item *cli_item;
+    struct cli_item cli_item;
     struct item items[20];
     int items_num = 0;
 
+    unlink(SOCKET_NAME);
     if((sd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1){
         perror("socket");
         exit(1);
@@ -52,13 +53,24 @@ int main(){
         exit(1);
     }
 
-    if(recv(nsd, cli_item, sizeof(cli_item), 0) == -1){
+    if(recv(nsd, (struct cli_item*)&cli_item, sizeof(cli_item), 0) == -1){
         perror("recv");
         exit(1);
     }
+    else{
+        strcpy(items[items_num].have, cli_item.have);
+        strcpy(items[items_num].want, cli_item.want);
+        items[items_num].addr = cli;
+        if(write(nsd, buf, strlen(buf))== -1){
+            perror("write");
+            exit(1);
+        }
+    }
 
-    printf("Received want: %s\n", cli_item->want);
-    printf("Received have: %s\n", cli_item->have);
+
+    printf("Received want: %s\n", items[items_num].want);
+    printf("Received have: %s\n", items[items_num].have);
+    printf("Received addr: %d\n", items[items_num].addr.sun_family);
     close(nsd);
     close(sd);
 }
