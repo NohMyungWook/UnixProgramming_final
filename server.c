@@ -18,6 +18,13 @@ struct cli_item{
     char have[50];
 };
 
+void print_item_list(int nsd, struct item items){
+    printf("Send item list to Client\n");
+    if(send(nsd, (struct item*)&items, sizeof(items), 0)== -1){
+        perror("send");
+        exit(1);
+    }
+}
 
 int main(){
     char buf[256] = "test";
@@ -61,20 +68,13 @@ int main(){
             exit(1);
             }
 
-            printf("Waiting...\n");
+            printf("Client Waiting...\n");
             if((nsd = accept(sd, (struct sockaddr *)&cli, &clen)) == -1){
                 perror("accept");
                 exit(1);
             }
             else{
-                send(nsd, &items_num, sizeof(items_num), 0);
-                for(int i=0; i<items_num; i++){
-                    printf("%d\n", items_num);
-                    if(send(nsd, (struct item*)&items[i], sizeof(items[i]), 0)== -1){
-                        perror("send");
-                        exit(1);
-                    }
-                }
+                print_item_list(nsd, *items);
             }
 
             if(recv(nsd, (struct cli_item*)&cli_item, sizeof(cli_item), 0) == -1){
@@ -86,10 +86,10 @@ int main(){
                 strcpy(items[items_num].want, cli_item.want);
                 items[items_num].addr = cli;
             }
-
             printf("Received want: %s\n", items[items_num].want);
             printf("Received have: %s\n", items[items_num].have);
             items_num++;
+
         }
         
     }
