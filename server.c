@@ -18,6 +18,7 @@ struct cli_item{
     char have[50];
 };
 
+
 int main(){
     char buf[256] = "test";
     struct sockaddr_un ser, cli;
@@ -31,7 +32,15 @@ int main(){
         perror("socket");
         exit(1);
     }
+    //test
+    strcpy(items[items_num].want, "want1");
+    strcpy(items[items_num].have, "have1");
+    items_num++;
 
+    strcpy(items[items_num].want, "want2");
+    strcpy(items[items_num].have, "have2");
+    items_num++;
+    //end of test
     memset((char*)&ser, 0, sizeof(struct sockaddr_un));
     ser.sun_family = AF_UNIX;
     strcpy(ser.sun_path, SOCKET_NAME);
@@ -57,6 +66,15 @@ int main(){
                 perror("accept");
                 exit(1);
             }
+            else{
+                send(nsd, items_num, sizeof(items_num), 0);
+                for(int i=0; i<items_num; i++){
+                    if(send(nsd, (struct item*)&items[i], sizeof(items[i]), 0)== -1){
+                        perror("send");
+                        exit(1);
+                    }
+                }
+            }
 
             if(recv(nsd, (struct cli_item*)&cli_item, sizeof(cli_item), 0) == -1){
                 perror("recv");
@@ -72,12 +90,7 @@ int main(){
             printf("Received have: %s\n", items[items_num].have);
             items_num++;
         }
-        for(int i=0; i<items_num; i++){
-            if(send(nsd, (struct item*)&items[i], sizeof(items[i]), 0)== -1){
-                perror("send");
-                exit(1);
-            }
-        }
+        
     }
     close(nsd);
     close(sd);
