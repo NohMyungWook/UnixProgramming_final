@@ -45,7 +45,7 @@ int get1Item(int sd, int count){
         exit(1);
         }
         else{
-            print("번호: %d: ", i+1);
+            printf("번호: %d: ", i+1);
             printf("가지고 있는 것: %s, ", newItem.have);
             printf("원하는 것: %s\n", newItem.want);
         }

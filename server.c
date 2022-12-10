@@ -67,8 +67,9 @@ int main(){
                 exit(1);
             }
             else{
-                send(nsd, items_num, sizeof(items_num), 0);
+                send(nsd, &items_num, sizeof(items_num), 0);
                 for(int i=0; i<items_num; i++){
+                    printf("%d\n", items_num);
                     if(send(nsd, (struct item*)&items[i], sizeof(items[i]), 0)== -1){
                         perror("send");
                         exit(1);
