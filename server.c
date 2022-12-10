@@ -7,10 +7,24 @@
 
 #define SOCKET_NAME "market"
 
+struct item{
+    char want[50];
+    char have[50];
+    struct sockaddr_un ip;
+};
+
+struct cli_item{
+    char want[50];
+    char have[50];
+};
+
 int main(){
     char buf[256];
     struct sockaddr_un ser, cli;
     int sd, nsd, len, clen;
+    struct cli_item *cli_item;
+    struct item items[20];
+    int items_num = 0;
 
     if((sd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1){
         perror("socket");
@@ -38,12 +52,13 @@ int main(){
         exit(1);
     }
 
-    if(recv(nsd, buf, sizeof(buf), 0) == -1){
+    if(recv(nsd, cli_item, sizeof(cli_item), 0) == -1){
         perror("recv");
         exit(1);
     }
 
-    printf("Received Message: %s\n", buf);
+    printf("Received want: %s\n", cli_item->want);
+    printf("Received have: %s\n", cli_item->have);
     close(nsd);
     close(sd);
 }
