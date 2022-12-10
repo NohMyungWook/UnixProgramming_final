@@ -49,7 +49,8 @@ void delete_item(struct item *items, int n, int items_num){
 
 int main(){
     struct sockaddr_un ser, cli;
-    int sd, nsd, len, clen;
+    int sd, len, clen;
+    int nsd;
     struct item item;
     struct item items[50];
     struct user_input user_input;
@@ -79,41 +80,45 @@ int main(){
         perror("bind");
         exit(1);
     }
-    if(listen(sd, 5) < 0){
+    if(listen(sd, 10) < 0){
     perror("listen");
     exit(1);
-    }
-
-    printf("Waiting for Client...\n");
-    if((nsd = accept(sd, (struct sockaddr *)&cli, &clen)) == -1){
-        perror("accept");
-        exit(1);
-    }
-    printf("Client connect!\n");
-    send_item_list(nsd, items_num, items);
+    } 
+    
     while(1){
+        printf("Waiting for Client...\n");
+        if((nsd = accept(sd, (struct sockaddr *)&cli, &clen)) == -1){
+            perror("accept");
+            exit(1);
+        }
+        else{
+            printf("Client connect!\n");
+            send_item_list(nsd, items_num, items);
+        }
         if(recv(nsd, (struct user_input*)&user_input, sizeof(user_input), 0) == -1){
             perror("recv");
             exit(1);
         }
-        switch(user_input.no){   
-            case 1:
-                for(int i=0; i<items_num; i++){
-                    if((strcmp(items[i].want, user_input.item.want) + strcmp(items[i].have, user_input.item.have))==0){
-                        printf("Delete List: index %d\n", i+1);
-                        delete_item(items, i, items_num);
-                        items_num --;
+        else{
+            switch(user_input.no){   
+                case 1:
+                    for(int i=0; i<items_num; i++){
+                        if((strcmp(items[i].want, user_input.item.want) + strcmp(items[i].have, user_input.item.have))==0){
+                            printf("Delete List: index %d\n", i+1);
+                            delete_item(items, i, items_num);
+                            items_num --;
+                        }
                     }
-                }
-                send_item_list(nsd, items_num, items);
-                break;
-            case 2:
-                if(add_item(&user_input, items, items_num)){
-                    items_num++;
-                    printf("Add List: index %d\n", items_num);
-                }
-                send_item_list(nsd, items_num, items);
-                break;
+                    send_item_list(nsd, items_num, items);
+                    break;
+                case 2:
+                    if(add_item(&user_input, items, items_num)){
+                        items_num++;
+                        printf("Add List: index %d\n", items_num);
+                    }
+                    send_item_list(nsd, items_num, items);
+                    break;
+            }
         }
     }
     close(nsd);
