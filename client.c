@@ -13,6 +13,12 @@ struct AddItem
 	char have[50];
 };
 
+struct SendPacket
+{
+    int no;
+    struct AddItem nowItem;
+};
+
 int getCount(int sd){
     int nowCount;
     if(recv(sd, (int* )&nowCount, sizeof(nowCount), 0) == -1){
@@ -36,7 +42,17 @@ int sendAddItemStruct(int clientSD, struct AddItem* newItem, int bufSize){
 	return 1;
 }
 
-int get1Item(int sd, int count){
+int sendchooseItemStruct(int clientSD, struct SendPacket* newPacket, int bufSize){
+	if (send(clientSD, (struct SendPacket*) newPacket, bufSize, 0) == -1) {
+        printf("send fail!\n");
+        perror("send");
+        return 0;
+    }
+    printf("send succsed!\n");
+	return 1;
+}
+
+int get1Item(int sd, int count, struct AddItem* allItemList){
     
     for (int i = 0;i< count; i++){
         struct AddItem newItem;
@@ -47,18 +63,30 @@ int get1Item(int sd, int count){
         exit(1);
         }
         else{
-            printf("번호: %d: ", i+1);
-            printf("가지고 있는 것: %s, ", newItem.have);
-            printf("원하는 것: %s\n", newItem.want);
+            *(allItemList + i) = newItem;
+            printf("[%d]\n", i+1);
+            printf("원하는 물건: %s\n, ", newItem.have);
+            printf("갖고 싶은 물건: %s\n", newItem.want);
         }
     }
 }
 
+int printNowList(int sd, struct AddItem* allItemList){
+    printf("-----현재 물물교환 가능 리스트-----\n");
+    int itemInt = getCount(sd);
+    if (itemInt >= 0){
+        get1Item(sd, itemInt, allItemList);
+    }else{
+        printf("현재 물물교환이 가능한 물건이 없습니다..\n");
+    }
+    printf("---------------------------------------\n");
+    return itemInt;
+}
 
 int main() {
     int sd, len;
     char buf[256];
-    struct sockaddr_un ser;
+    struct sockaddr_un ser;    
 
     if ((sd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
         perror("socket");
@@ -75,28 +103,67 @@ int main() {
         exit(1);
     }
 
-    int itemInt = getCount(sd);
-    
-    if (itemInt >= 0){
-        get1Item(sd, itemInt);
-    }else{
-        printf("받은 리스트 개수가 0보다 작다.\n");
+    //Connect End, Program Start
+    int isRun = 1;
+    while(isRun){
+
+        struct AddItem allItemList[50];
+
+        //리스트 출력 구간
+        int nowListSize = printNowList(sd, allItemList);
+
+        printf("(1)교환 (2)등록 (3)나가기\n");
+        printf("원하시는 작업을 선택하세요 : ");
+        int taskNum = 0;
+        scanf("%d", &taskNum);
+
+        if(taskNum == 1){
+            printf("교환을 원하시는 번호를 입력해주세요 : ");
+            int changeNum = 0;
+            scanf("%d", &changeNum);
+            if(changeNum > 0 && changeNum <= nowListSize){
+                //보낼 item의 구조체를 만들기
+                int changeIndex = changeNum - 1;
+                struct AddItem sendItem;
+                strcpy(sendItem.have, allItemList[changeIndex].have);
+                strcpy(sendItem.want, allItemList[changeIndex].want);
+                
+                //보낼 패킷을 만들기
+                struct SendPacket newPacket;
+                newPacket.no = 1;
+                newPacket.nowItem = sendItem;
+
+                sendchooseItemStruct(sd, &newPacket, sizeof(struct SendPacket));
+                printf("교환이 완료되었습니다.\n");
+
+            }else{
+                printf("번호가 범위 안에 없습니다.\n");
+            }
+        }else if (taskNum == 2){
+
+        }else if(taskNum == 3){
+            printf("감사합니다\n");
+            isRun = 0;
+        }else{
+            printf("잘 못 입력했습니다. 정수 1, 2, 3중 하나를 입력하세요. ");
+        }
     }
-	int testInt = 1;
 
-	while(testInt == 1){
-		struct AddItem newItem;
-		
-		printf("내가 가지고 있는거: ");
-		scanf("%s", &newItem.have);
-		
-		printf("내가 원하는 거: ");
-		scanf("%s", &newItem.want);
+	// int testInt = 1;
 
-		sendAddItemStruct(sd, &newItem, sizeof(struct AddItem));
-		printf("계속 보내고 싶어?(1/0): ");
-		scanf("%d", &testInt);
-	}
+	// while(testInt == 1){
+	// 	struct AddItem newItem;
+		
+	// 	printf("내가 가지고 있는거: ");
+	// 	scanf("%s", &newItem.have);
+		
+	// 	printf("내가 원하는 거: ");
+	// 	scanf("%s", &newItem.want);
+
+	// 	sendAddItemStruct(sd, &newItem, sizeof(struct AddItem));
+	// 	printf("계속 보내고 싶어?(1/0): ");
+	// 	scanf("%d", &testInt);
+	// }
 
     close(sd);
 }
