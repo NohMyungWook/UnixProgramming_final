@@ -40,7 +40,7 @@ int main(){
     strcpy(items[items_num].want, "want2");
     strcpy(items[items_num].have, "have2");
     items_num++;
-    //end of test
+    //end of test 
     memset((char*)&ser, 0, sizeof(struct sockaddr_un));
     ser.sun_family = AF_UNIX;
     strcpy(ser.sun_path, SOCKET_NAME);
