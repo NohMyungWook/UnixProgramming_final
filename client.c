@@ -13,18 +13,29 @@ struct AddItem
 	char have[50];
 };
 
-
 int sendAddItemStruct(int clientSD, struct AddItem* newItem, int bufSize){
 	if (send(clientSD, (struct AddItem*) newItem, bufSize, 0) == -1) {
-        printf("send fail!");
+        printf("send fail!\n");
         perror("send");
         return 0;
     }
-    printf("send succsed!");
+    printf("send succsed!\n");
 	return 1;
-
 }
 
+int get1Item(int sd){
+    struct AddItem newItem;
+    
+    if(recv(sd, (struct AddItem * )&newItem, sizeof(newItem), 0) == -1){
+        perror("recv");
+        exit(1);
+    }
+    else{
+        printf("가지고 있는 것: %s, ", newItem.have);
+        printf("원하는 것: %s\n", newItem.want);
+        get1Item(sd);
+    }
+}
 
 int main() {
     int sd, len;
@@ -45,6 +56,8 @@ int main() {
         perror("bind");
         exit(1);
     }
+
+    get1Item(sd);
 
 	int testInt = 1;
 
