@@ -1,115 +1,18 @@
-#include <sys/socket.h>
-#include <sys/un.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <signal.h>
+// #include <sys/socket.h>
+// #include <sys/un.h>
+// #include <unistd.h>
+// #include <stdlib.h>
+// #include <stdio.h>
+// #include <string.h>
+// #include <signal.h>
+
+#include "clientValues.h"
+#include "clientList.h"
+#include "clientEdit.h"
 
 #define SOCKET_NAME "market"
 
-struct AddItem
-{
-	char want[50];
-	char have[50];
-};
-
-struct SendPacket
-{
-    int no;
-    struct AddItem nowItem;
-};
-
-int sendStruct(int clientSD, struct AddItem newItem, int no){
-	//보낼 패킷을 만들기
-    struct SendPacket newPacket;
-    newPacket.no = no;
-    newPacket.nowItem = newItem;
-    
-    if (send(clientSD, (struct SendPacket*) &newPacket, sizeof(newPacket), 0) == -1) {
-        perror("send");
-        return 0;
-    }
-	return 1;
-}
-
-int getCount(int sd){
-    int nowCount;
-    if(recv(sd, (int* )&nowCount, sizeof(nowCount), 0) == -1){
-        perror("Count Recv");
-        exit(1);
-    }
-    else{
-        return nowCount;
-    }
-    return -1;
-}
-
-int get1Item(int sd, int count, struct AddItem* allItemList){
-    
-    for (int i = 0;i< count; i++){
-        struct AddItem newItem;
-        memset((struct AddItem *)&newItem, '\0', sizeof(struct AddItem));
-
-        if(recv(sd, (struct AddItem * )&newItem, sizeof(struct AddItem), 0) == -1){
-        perror("recv");
-        exit(1);
-        }
-        else{
-            *(allItemList + i) = newItem;
-            printf("[%d]\n", i+1);
-            printf("원하는 물건: %s\n", newItem.want);
-            printf("갖고 싶은 물건: %s\n", newItem.have);
-        }
-    }
-}
-
-int printNowList(int sd, struct AddItem* allItemList){
-    struct AddItem empty;
-    sendStruct(sd, empty, 0);
-
-    printf("-----현재 물물교환 가능 리스트-----\n");
-
-    int itemInt = getCount(sd);
-
-    if (itemInt > 0){
-        printf("getCount: %d\n", itemInt);
-        get1Item(sd, itemInt, allItemList);
-    }else{
-        printf("현재 물물교환이 가능한 물건이 없습니다..\n\n");
-    }
-
-    printf("---------------------------------------\n");
-    return itemInt;
-}
-
-int createNew(int sd){
-    struct AddItem newItem;
-    
-    printf("원하는 물건을 입력하세요 : ");
-    scanf("%s", newItem.want);
-
-    printf("가지고 있는 물건을 입력하세요 : ");
-    scanf("%s", newItem.have);
-
-    sendStruct(sd, newItem, 2);
-
-    printf("\n등록되었습니다. \n");
-    return 1;
-}
-
-void sig_handler(int signo){
-    printf("recive %d Signal", signo);
-}
-
 int main() {
-    void (*hand) (int);
-    hand = signal(SIGCHLD, sig_handler);
-    if(hand == SIG_ERR){
-        perror("signal");
-        exit(1);
-    }
-
     int sd, len;
     char buf[256];
     struct sockaddr_un ser;    
@@ -189,12 +92,3 @@ int main() {
     sendStruct(sd, empty, 3);
     close(sd);
 }
-
-
-// int sendAddItemStruct(int clientSD, struct AddItem* newItem, int bufSize){
-// 	if (send(clientSD, (struct AddItem*) newItem, bufSize, 0) == -1) {
-//         perror("send");
-//         return 0;
-//     }
-// 	return 1;
-// }

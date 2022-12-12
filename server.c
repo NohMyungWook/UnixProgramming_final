@@ -1,116 +1,12 @@
-#include <sys/socket.h>
-#include <sys/un.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdbool.h>
-#include <signal.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/sem.h>
-#include <sys/ipc.h>
 #include <sys/shm.h>
-#include <sys/wait.h>
+#include <stdbool.h>
+
+#include "serverValues.h"
+#include "serverList.h"
+#include "serverSemaphore.h"
 
 #define SOCKET_NAME "market"
 
-struct item{
-    char want[50];
-    char have[50];
-};
-
-struct user_input{
-    int no;
-    struct item item;
-};
-
-union semun{
-    int val;
-    struct semid_ds *buf;
-    unsigned short *array;
-};
-
-int initsem(key_t semkey){
-    union semun semunarg;
-    int status=0, semid;
-    semid = semget(semkey, 1, IPC_CREAT|IPC_EXCL|0600);
-    if(semid == -1){
-        if(errno == EEXIST)
-            semid = semget(semkey, 1, 0);
-    }
-    else{
-        semunarg.val = 1;
-        status = semctl(semid, 0, SETVAL, semunarg);
-    }
-
-    if(semid == -1 || status == -1){
-        perror("initsem");
-        return (-1);
-    }
-    printf("sem_id: %d\n", semid);
-    return semid;
-}
-
-int semlock(int semid){
-    struct sembuf buf;
-    pid_t pid = getpid();
-    buf.sem_num = 0;
-    buf.sem_op = -1;
-    buf.sem_flg = SEM_UNDO;
-    printf("%d, %d, %d, sem_id : %d\n", buf.sem_num, buf.sem_op, buf.sem_flg, semid);
-    if(semop(semid, &buf, 1) == -1){
-        perror("semlock failed");
-        exit(1);
-    }
-    printf("------------------\n");
-    printf("Process %d lock\n", (int)pid);
-    return 0;
-}
-
-int semunlock(int semid){
-    struct sembuf buf;
-    pid_t pid = getpid();
-    buf.sem_num = 0;
-    buf.sem_op = 1;
-    buf.sem_flg = SEM_UNDO;
-    if(semop(semid, &buf, 1) == -1){
-        perror("semunlock failed");
-        exit(1);
-    }
-    printf("Process %d unlock\n", (int)pid);
-    printf("------------------\n");
-    return 0;
-}
-
-void send_item_list(int nsd, int items_num, struct item *items, int pidno){
-    printf("Send Item list to %d\n\n", pidno);
-    send(nsd, &items_num, sizeof(items_num), 0);
-    for(int i=0; i<items_num; i++){
-        if(send(nsd, (struct item *)(items + i), sizeof(struct item), 0)== -1){
-            perror("send");
-            exit(1);
-        }
-    }
-    return;
-}
-
-bool add_item(struct user_input *user_input, struct item *items, int items_num){
-    if(items_num > 50){
-        printf("Cannot add item\n");
-        return false;
-    }
-    strcpy((items + items_num)->have, user_input->item.have);
-    strcpy((items + items_num)->want, user_input->item.want);
-    return true;
-}
-
-void delete_item(struct item *items, int n, int items_num){
-    for(int i=n; i<items_num; i++){
-        memcpy((items + i), (items + i+1), sizeof(struct item));
-    }
-    return;
-}
 
 int main(){
     int shmidList, shmidInt, i;
