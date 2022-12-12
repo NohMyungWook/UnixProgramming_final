@@ -38,7 +38,7 @@ int initsem(key_t semkey){
         perror("initsem");
         return (-1);
     }
-
+    printf("sem_id: %d\n", semid);
     return semid;
 }
 
@@ -48,6 +48,7 @@ int semlock(int semid){
     buf.sem_num = 0;
     buf.sem_op = -1;
     buf.sem_flg = SEM_UNDO;
+    printf("%d, %d, %d, sem_id : %d\n", buf.sem_num, buf.sem_op, buf.sem_flg, semid);
     if(semop(semid, &buf, 1) == -1){
         perror("semlock failed");
         exit(1);
@@ -190,8 +191,8 @@ int main(){
                 itemsListPointer = shmaddrList;
                 shmaddrInt = (int * )shmat(shmidInt, (int *)NULL, 0);
                 items_num_Pointer = shmaddrInt;
-                int semid;
-                if(semid = (initsem(1) < 0))
+                int semid = initsem(1);
+                if(semid < 0)
                     exit(1);
                 printf("Client connect! # of Proc :%d \n", (int)getpid());
                 while(1){
