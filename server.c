@@ -6,12 +6,71 @@
 #include <string.h>
 #include <stdbool.h>
 #include <signal.h>
-
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/sem.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <sys/wait.h>
 
 #define SOCKET_NAME "market"
+
+union semun{
+    int val;
+    struct semid_ds *buf;
+    unsigned short *array;
+};
+
+int initsem(key_t semkey){
+    union semun semunarg;
+    int status=0, semid;
+    semid = semget(semkey, 1, IPC_CREAT|IPC_EXCL|0600);
+    if(semid == -1){
+        if(errno == EEXIST)
+            semid = semget(semkey, 1, 0);
+    }
+    else{
+        semunarg.val = 1;
+        status = semctl(semid, 0, SETVAL, semunarg);
+    }
+
+    if(semid == -1 || status == -1){
+        perror("initsem");
+        return (-1);
+    }
+
+    return semid;
+}
+
+int semlock(int semid){
+    struct sembuf buf;
+    pid_t pid = getpid();
+    buf.sem_num = 0;
+    buf.sem_op = -1;
+    buf.sem_flg = SEM_UNDO;
+    if(semop(semid, &buf, 1) == -1){
+        perror("semlock failed");
+        exit(1);
+    }
+    printf("------------------\n");
+    printf("Process %d lock\n", (int)pid);
+    return 0;
+}
+
+int semunlock(int semid){
+    struct sembuf buf;
+    pid_t pid = getpid();
+    buf.sem_num = 0;
+    buf.sem_op = 1;
+    buf.sem_flg = SEM_UNDO;
+    if(semop(semid, &buf, 1) == -1){
+        perror("semunlock failed");
+        exit(1);
+    }
+    printf("Process %d unlock\n", (int)pid);
+    printf("------------------\n");
+    return 0;
+}
 
 struct item{
     char want[50];
@@ -23,11 +82,10 @@ struct user_input{
     struct item item;
 };
 
-void send_item_list(int nsd, int items_num, struct item *items){
-    printf("Send list Start, List Size is %d\n", items_num);
+void send_item_list(int nsd, int items_num, struct item *items, int pidno){
+    printf("Send Item list to %d\n\n", pidno);
     send(nsd, &items_num, sizeof(items_num), 0);
     for(int i=0; i<items_num; i++){
-        printf("now Index is %d, now Have is %s\n", i, (items + i)->have);
         if(send(nsd, (struct item *)(items + i), sizeof(struct item), 0)== -1){
             perror("send");
             exit(1);
@@ -116,21 +174,26 @@ int main(){
         exit(1);
     } 
     
+    printf("Waiting for Client...\n");
     while(1){
-        printf("Waiting for Client...\n");
+        clen = sizeof(cli);
         if((nsd = accept(sd, (struct sockaddr *)&cli, &clen)) == -1){
             perror("accept");
             exit(1);
         }
         switch (fork()){
+            case -1:
+                perror("fork");
+                exit(1);
             case 0: // 자식 프로세스일 경우:
-
                 shmaddrList = (struct item*)shmat(shmidList, (struct item*)NULL, 0);
                 itemsListPointer = shmaddrList;
                 shmaddrInt = (int * )shmat(shmidInt, (int *)NULL, 0);
                 items_num_Pointer = shmaddrInt;
-
-                printf("Client connect!\n");
+                int semid;
+                if(semid = (initsem(1) < 0))
+                    exit(1);
+                printf("Client connect! # of Proc :%d \n", (int)getpid());
                 while(1){
                     if(recv(nsd, (struct user_input*)&user_input, sizeof(user_input), 0) == -1){
                         perror("recv");
@@ -139,9 +202,10 @@ int main(){
                     else{
                         switch(user_input.no){   
                             case 0: 
-                                send_item_list(nsd, (*items_num_Pointer), itemsListPointer);
+                                send_item_list(nsd, (*items_num_Pointer), itemsListPointer, (int)getpid());
                                 break;
                             case 1:
+                                semlock(semid);
                                 for(int i=0; i<*items_num_Pointer; i++){
                                     if((strcmp((itemsListPointer + i)->want, user_input.item.want) + strcmp((itemsListPointer + i)->have, user_input.item.have))==0){
                                         printf("Delete List: index %d\n",i+1);
@@ -150,23 +214,25 @@ int main(){
                                     }
 
                                 }
+                                semunlock(semid);
                                 break;
                             case 2:
+                                semlock(semid);
                                 if(add_item(&user_input, itemsListPointer, *items_num_Pointer)){
                                     *items_num_Pointer += 1;
                                     printf("Add List: index %d\n", *items_num_Pointer);
                                 }
+                                semunlock(semid);
                                 break;
                             case 3:
+                                printf("Client disconnect! # of Proc: %d\n\n", (int)getpid());
                                 close(nsd);
                                 exit(1);
                         }
                     }
 
-                }
-                
+                }  
         }
-        
     }
     close(nsd);
     close(sd);
