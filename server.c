@@ -15,6 +15,16 @@
 
 #define SOCKET_NAME "market"
 
+struct item{
+    char want[50];
+    char have[50];
+};
+
+struct user_input{
+    int no;
+    struct item item;
+};
+
 union semun{
     int val;
     struct semid_ds *buf;
@@ -73,16 +83,6 @@ int semunlock(int semid){
     return 0;
 }
 
-struct item{
-    char want[50];
-    char have[50];
-};
-
-struct user_input{
-    int no;
-    struct item item;
-};
-
 void send_item_list(int nsd, int items_num, struct item *items, int pidno){
     printf("Send Item list to %d\n\n", pidno);
     send(nsd, &items_num, sizeof(items_num), 0);
@@ -113,7 +113,6 @@ void delete_item(struct item *items, int n, int items_num){
 }
 
 int main(){
-
     int shmidList, shmidInt, i;
     struct item *shmaddrList;
     int* shmaddrInt;
@@ -230,13 +229,8 @@ int main(){
                                 printf("Client disconnect! # of Proc: %d\n\n", (int)getpid());
                                 close(nsd);
                                 exit(1);
-                            case 9:
-                                strcpy(client_pid, user_input.item.have);
-                                printf("client pid: %s\n", client_pid);
-                                break;
                         }
                     }
-
                 }  
         }
     }
