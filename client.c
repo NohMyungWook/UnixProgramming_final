@@ -134,8 +134,6 @@ int main() {
     while(isRun){
 
         struct AddItem allItemList[50];
-        memset((struct AddItem *)allItemList, '\0', sizeof(allItemList));
-
 
         //리스트 출력 구간
         int nowListSize = printNowList(sd, allItemList);

@@ -24,9 +24,10 @@ struct user_input{
 };
 
 void send_item_list(int nsd, int items_num, struct item *items){
-    printf("send used, %d\n", items_num);
+    printf("Send list Start, List Size is %d\n", items_num);
     send(nsd, &items_num, sizeof(items_num), 0);
     for(int i=0; i<items_num; i++){
+        printf("now Index is %d, now Have is %s\n", i, (items + i)->have);
         if(send(nsd, (struct item *)(items + i), sizeof(struct item), 0)== -1){
             perror("send");
             exit(1);
@@ -123,7 +124,6 @@ int main(){
         }
         switch (fork()){
             case 0: // 자식 프로세스일 경우:
-                
 
                 shmaddrList = (struct item*)shmat(shmidList, (struct item*)NULL, 0);
                 itemsListPointer = shmaddrList;
@@ -148,15 +148,14 @@ int main(){
                                         delete_item(itemsListPointer, i, *items_num_Pointer);
                                         *items_num_Pointer -=1;
                                     }
+
                                 }
-                                send_item_list(nsd, *items_num_Pointer, itemsListPointer);
                                 break;
                             case 2:
                                 if(add_item(&user_input, itemsListPointer, *items_num_Pointer)){
                                     *items_num_Pointer += 1;
                                     printf("Add List: index %d\n", *items_num_Pointer);
                                 }
-                                send_item_list(nsd, (*items_num_Pointer), itemsListPointer);
                                 break;
                             case 3:
                                 close(nsd);
