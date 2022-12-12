@@ -192,9 +192,10 @@ int main(){
                 shmaddrInt = (int * )shmat(shmidInt, (int *)NULL, 0);
                 items_num_Pointer = shmaddrInt;
                 int semid = initsem(1);
+                char client_pid[50];
                 if(semid < 0)
                     exit(1);
-                printf("Client connect! # of Proc :%d \n", (int)getpid());
+                printf("New Client connect!\n");
                 while(1){
                     if(recv(nsd, (struct user_input*)&user_input, sizeof(user_input), 0) == -1){
                         perror("recv");
@@ -229,6 +230,10 @@ int main(){
                                 printf("Client disconnect! # of Proc: %d\n\n", (int)getpid());
                                 close(nsd);
                                 exit(1);
+                            case 9:
+                                strcpy(client_pid, user_input.item.have);
+                                printf("client pid: %s\n", client_pid);
+                                break;
                         }
                     }
 

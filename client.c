@@ -131,8 +131,10 @@ int main() {
     
     //Send Client Pid
     struct AddItem sendPid;
+    char clientPidChar[50];
     int clientPidInt = getpid();
-    char clientPidChar[50] = itoa(clientPidInt);
+
+    sprintf(clientPidChar, "%d", clientPidInt);
     strcpy(sendPid.have, clientPidChar);
     sendStruct(sd, sendPid, 9);
 
