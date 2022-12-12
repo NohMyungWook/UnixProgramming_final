@@ -1,14 +1,12 @@
-// #include <sys/socket.h>
-// #include <sys/un.h>
-// #include <unistd.h>
-// #include <stdlib.h>
-// #include <stdio.h>
-// #include <string.h>
-// #include <signal.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 #include "clientValues.h"
-#include "clientList.h"
 #include "clientEdit.h"
+#include "clientList.h"
 
 #define SOCKET_NAME "market"
 
