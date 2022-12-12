@@ -76,7 +76,7 @@ int printNowList(int sd, struct AddItem* allItemList){
         printf("getCount: %d\n", itemInt);
         get1Item(sd, itemInt, allItemList);
     }else{
-        printf("현재 물물교환이 가능한 물건이 없습니다..\n");
+        printf("현재 물물교환이 가능한 물건이 없습니다..\n\n");
     }
 
     printf("---------------------------------------\n");
@@ -128,6 +128,13 @@ int main() {
         perror("bind");
         exit(1);
     }
+    
+    //Send Client Pid
+    struct AddItem sendPid;
+    int clientPidInt = getpid();
+    char clientPidChar[50] = itoa(clientPidInt);
+    strcpy(sendPid.have, clientPidChar);
+    sendStruct(sd, sendPid, 9);
 
     //Connect End, Program Start
     int isRun = 1;
