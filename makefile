@@ -1,0 +1,17 @@
+CC=gcc
+CFLAGS=-g -Wall
+SERVER_TARGET=server
+CLIENT_TARGET=client
+SERVER_C=server.c
+CLIENT_C=client.c
+
+
+
+$(SERVER_TARGET): $(SERVER_C)
+	$(CC) -o $(SERVER_TARGET) $(SERVER_C)
+	
+$(CLIENT_TARGET): $(CLIENT_C)
+	$(CC) -o $(CLIENT_TARGET) $(CLIENT_C)
+
+clean:
+	rm $(SERVER_TARGET) $(SERVER_TARGET)
