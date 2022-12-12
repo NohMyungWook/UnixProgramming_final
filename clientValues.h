@@ -1,3 +1,5 @@
+#define SOCKET_NAME "market" //유닉스 도메인 소켓의 경로명
+
 struct AddItem //교환 정보를 저장할 구조체 정의 
 {
 	char want[50]; //원하는 물건

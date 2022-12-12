@@ -8,9 +8,6 @@
 #include "clientEdit.h"
 #include "clientList.h"
 
-//유닉스 도메인 소켓의 경로명
-#define SOCKET_NAME "market"
-
 int main() {
     //소켓 프로그래밍을 위함 변수 선언
     int sd, len; //소켓 기술자, 소켓 주소 구조체 크기

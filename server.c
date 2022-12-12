@@ -1,17 +1,20 @@
 #include <sys/shm.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <stddef.h>
+#include <string.h>
+#include <stdio.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <unistd.h>
 
 #include "serverValues.h"
 #include "serverList.h"
 #include "serverSemaphore.h"
 
-//유닉스 도메인 소켓의 경로명
-#define SOCKET_NAME "market"
-
-
 int main(){
     //공유 메모리 관련 변수 선언
-    int shmidList, shmidInt, i; //공유 메모리 식별자(교환 정보 리스트, 리스트 크기) 선언
+    int shmidList, shmidInt; //공유 메모리 식별자(교환 정보 리스트, 리스트 크기) 선언
     struct item *shmaddrList; //"교환 정보 리스트"의 공유 메모리 포인터 선언
     int* shmaddrInt; //"교환 정보 리스트 크기"의 공유 메모리 포인터 선언
 
@@ -81,7 +84,7 @@ int main(){
     while(1){
         clen = sizeof(cli); //클라이언트의 소켓 주소 구조체 크기 계산
         //클라이언트의 연결 요청 수락
-        if((nsd = accept(sd, (struct sockaddr *)&cli, &clen)) == -1){
+        if((nsd = accept(sd, (struct sockaddr *)&cli, (socklen_t* )&clen)) == -1){
             perror("accept"); //실패 시 오류 메시지 출력
             exit(1); //프로세스 종료
         }
@@ -98,7 +101,6 @@ int main(){
                 int semid = initsem(1); //세마포어 초기화
                 if(semid < 0)  //세마포어 초기화 실패 시
                     exit(1); //프로세스 종료
-                char client_pid[50]; //클라이언트 PID를 저장할 문자열 선언
                 printf("New Client connect!\n");
                 //서버 자식 프로세스 초기 설정 완료//
 
