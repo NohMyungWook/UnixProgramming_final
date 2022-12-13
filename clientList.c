@@ -44,7 +44,7 @@ void get1Item(int sd, int count, struct AddItem* allItemList){
 //교환 정보 리스트를 출력 및 저장를 관리하는 함수
 int printNowList(int sd, struct AddItem* allItemList){
     struct AddItem empty; //빈 구조체를 선언하고
-    sendStruct(sd, empty, 0); ///식별 번호 0번(교환 정보 리스트 크기 요청)과 함께 PID정보를 서버에게 전송
+    sendStruct(sd, empty, 0); //식별 번호 0번(교환 정보 리스트 크기 요청)과 함께 PID정보를 서버에게 전송
 
     printf("-----현재 물물교환 가능 리스트-----\n");
 

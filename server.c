@@ -52,21 +52,21 @@ int main(){
         exit(1); //프로세스 종료
     }
 
-    //test
-    strcpy((itemsListPointer + *items_num_Pointer)->want, "want1");
-    strcpy((itemsListPointer + *items_num_Pointer)->have, "have1");
+    //test용 dummy data
+    strcpy((itemsListPointer + *items_num_Pointer)->want, "애플워치");
+    strcpy((itemsListPointer + *items_num_Pointer)->have, "갤럭시워치");
     *items_num_Pointer += 1;
 
-    strcpy((itemsListPointer + *items_num_Pointer)->want, "want2");
-    strcpy((itemsListPointer + *items_num_Pointer)->have, "have2");
+    strcpy((itemsListPointer + *items_num_Pointer)->want, "파이썬교재");
+    strcpy((itemsListPointer + *items_num_Pointer)->have, "c언어교재");
     *items_num_Pointer += 1;
-    //end of test 
+    //end of dummy data
 
     //소켓 주소 구조체 초기화
     memset((char*)&ser, 0, sizeof(struct sockaddr_un));
     ser.sun_family = AF_UNIX; //유닉스 도메인 소켓 지정
     strcpy(ser.sun_path, SOCKET_NAME); //경로 지정
-    len = sizeof(ser.sun_family) + strlen(ser.sun_path); //주고체 크기 계산
+    len = sizeof(ser.sun_family) + strlen(ser.sun_path); //구조체 크기 계산
 
     //소켓 기술자를 지정된 유닉스 도메인 경로와 결합
     if(bind(sd, (struct sockaddr *)&ser, len)){
@@ -111,8 +111,8 @@ int main(){
                         exit(1); //프로세스 종료
                     }
                     else{ //수신 성공 시
-                        switch(user_input.no){ //수신 패킷의 식별 번호에 따라
-                            case 0: //식변 번호 = 0: 교환 정보 리스트를 클라이언트에게 전송
+                        switch(user_input.no){ //수신할 패킷의 식별 번호에 따른 동작 과정
+                            case 0: //식별 번호 = 0: 교환 정보 리스트를 클라이언트에게 전송
                                 send_item_list(nsd, (*items_num_Pointer), itemsListPointer, (int)getpid());
                                 break;
                             case 1: //식별 번호 = 1: 물건 교환 요청 
@@ -124,7 +124,7 @@ int main(){
                                     if((strcmp((itemsListPointer + i)->want, user_input.item.want) + strcmp((itemsListPointer + i)->have, user_input.item.have))==0){
                                         printf("Delete List: index %d\n",i+1); //서버 로그 출력
                                         delete_item(itemsListPointer, i, *items_num_Pointer); //해당 교환 정보 삭제
-                                        *items_num_Pointer -=1; //교환 정보 리스트 크기가 1씩 감소
+                                        *items_num_Pointer -=1; //교환 정보 리스트 크기 1 감소
                                     }
                                 }
                                 semunlock(semid); //임계 영역 접근 종료
@@ -134,7 +134,7 @@ int main(){
 
                                 //교환 물건 등록 성공 시
                                 if(add_item(&user_input, itemsListPointer, *items_num_Pointer)){
-                                    *items_num_Pointer += 1; //교환 정보 리스트 크기가 1씩 증가
+                                    *items_num_Pointer += 1; //교환 정보 리스트 크기 1 증가
                                     printf("Add List: index %d\n", *items_num_Pointer); //서버 로그 출력
                                 }
 

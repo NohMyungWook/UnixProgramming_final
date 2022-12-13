@@ -23,7 +23,7 @@ int main() {
     memset((char *)&ser, '\0', sizeof(ser));
     ser.sun_family = AF_UNIX; //유닉스 도메인 소켓 지정
     strcpy(ser.sun_path, SOCKET_NAME); //경로 지정
-    len = sizeof(ser.sun_family) + strlen(ser.sun_path); //주고체 크기 계산
+    len = sizeof(ser.sun_family) + strlen(ser.sun_path); //구조체 크기 계산
 
     //클라이언트가 서버에 접속 요청
     if (connect(sd, (struct sockaddr *)&ser, len) < 0) {

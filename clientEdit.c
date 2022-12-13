@@ -5,7 +5,7 @@
 
 //식별 번호와 함께 서버에게 구조체를 전송하는 함수 
 int sendStruct(int clientSD, struct AddItem newItem, int no){ 
-    struct SendPacket newPacket; //패킷을 보낼 구조체 선언
+    struct SendPacket newPacket; //패킷으로 보낼 구조체 선언
     newPacket.no = no; //식별 번호 저장
     newPacket.nowItem = newItem; //보낼 구조체 저장
     
